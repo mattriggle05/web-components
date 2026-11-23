@@ -44,7 +44,7 @@ const SearchFilters = <R extends TableData>({
       .map((id) => newRow(id)),
   );
 
-  const without = (columnId: string | undefined): Filter[] =>
+  const without = (columnId: string): Filter[] =>
     value.filter((f) => f.id !== columnId);
 
   /** The column's filters without their id, for its component. */
@@ -58,12 +58,13 @@ const SearchFilters = <R extends TableData>({
       current.map((r) => (r.key === row.key ? { ...r, columnId } : r)),
     );
     // The old column's value doesn't apply to the new one
-    if (row.columnId !== columnId) onChange(without(row.columnId));
+    if (row.columnId !== undefined && row.columnId !== columnId)
+      if (row.columnId !== undefined) onChange(without(row.columnId));
   };
 
   const removeRow = (row: FilterRow) => {
     setRows((current) => current.filter((r) => r.key !== row.key));
-    onChange(without(row.columnId));
+    if (row.columnId !== undefined) onChange(without(row.columnId));
   };
 
   /** Replaces exactly this column's filters and leaves the rest of the list alone. */
