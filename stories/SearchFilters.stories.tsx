@@ -3,8 +3,8 @@ import { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/nextjs";
 
 import SearchFilters, {
+  Filter,
   FilterColumn,
-  FilterValues,
   booleanFilter,
   dateRangeFilter,
   optionsFilter,
@@ -29,7 +29,7 @@ const columnFilters: FilterColumn<Application>[] = [
   {
     id: "status",
     name: "Status",
-    filter: optionsFilter([
+    FilterComponent: optionsFilter([
       { value: "PENDING", label: "Pending" },
       { value: "APPROVED", label: "Approved" },
       { value: "DENIED", label: "Denied" },
@@ -39,7 +39,7 @@ const columnFilters: FilterColumn<Application>[] = [
   {
     id: "role",
     name: "Role",
-    filter: optionsFilter([
+    FilterComponent: optionsFilter([
       { value: "pi", label: "PI" },
       { value: "student", label: "Student" },
       { value: "postdoc", label: "Postdoc" },
@@ -48,25 +48,33 @@ const columnFilters: FilterColumn<Application>[] = [
       { value: "external", label: "External Collaborator" },
     ]),
   },
-  { id: "active", name: "Active", filter: booleanFilter("Active", "Inactive") },
-  { id: "submitted", name: "Submitted", filter: dateRangeFilter() },
-  { id: "pi", name: "PI", filter: textFilter() },
-  { id: "gid", name: "GID", filter: numberFilter() },
-  { id: "cpus", name: "CPUs", filter: rangeFilter({ min: 0, max: 10 }) },
+  {
+    id: "active",
+    name: "Active",
+    FilterComponent: booleanFilter("Active", "Inactive"),
+  },
+  { id: "submitted", name: "Submitted", FilterComponent: dateRangeFilter() },
+  { id: "pi", name: "PI", FilterComponent: textFilter() },
+  { id: "gid", name: "GID", FilterComponent: numberFilter() },
+  {
+    id: "cpus",
+    name: "CPUs",
+    FilterComponent: rangeFilter({ min: 0, max: 10 }),
+  },
   {
     id: "memory",
     name: "Memory (MB)",
-    filter: rangeFilter({ min: 500, max: 1000, step: 50 }),
+    FilterComponent: rangeFilter({ min: 500, max: 1000, step: 50 }),
   },
 ];
 
 /** SearchFilters is controlled: this holds the value the way ServerTable would, and shows it. */
 const ControlledSearchFilters = ({
-  initialValue = {},
+  initialValue = [],
 }: {
-  initialValue?: FilterValues;
+  initialValue?: Filter[];
 }) => {
-  const [value, setValue] = useState<FilterValues>(initialValue);
+  const [value, setValue] = useState<Filter[]>(initialValue);
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
       <SearchFilters
@@ -103,10 +111,11 @@ export const Default: Story = {
 
 export const WithInitialFilters: Story = {
   args: {
-    initialValue: {
-      status: "APPROVED",
-      memory: [600, 900],
-      submitted: { from: "2026-10-01" },
-    },
+    initialValue: [
+      { id: "status", operator: "eq", value: "APPROVED" },
+      { id: "memory", operator: "ge", value: "600" },
+      { id: "memory", operator: "le", value: "900" },
+      { id: "submitted", operator: "ge", value: "2026-10-01" },
+    ],
   },
 };

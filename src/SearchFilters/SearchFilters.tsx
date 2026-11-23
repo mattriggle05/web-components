@@ -11,16 +11,16 @@ import {
 } from "@mui/material";
 import { Add, Close } from "@mui/icons-material";
 import { TableData } from "../Table/types";
-import { FilterColumn, FilterValues } from "./types";
+import { BaseFilter, Filter, FilterColumn } from "./types";
 
 export const DEFAULT_FILTER_ROW_HEIGHT = 56;
 
 export interface SearchFiltersProps<R extends TableData> {
   /** Columns that can be chosen in a row's dropdown. */
   columnFilters: FilterColumn<R>[];
-  /** Current filter values keyed by column id. An unset filter has no key. */
-  value: FilterValues;
-  onChange: (next: FilterValues) => void;
+  /** Every filter for the table. Filters for columns without a row are kept as they are. */
+  value: readonly Filter[];
+  onChange: (next: Filter[]) => void;
   rowHeight?: number;
   sx?: SxProps<Theme>;
 }
@@ -44,16 +44,21 @@ const SearchFilters = <R extends TableData>({
     columnId,
   });
 
-  // Rows hold order and not-yet-chosen rows, which the value map can't; values themselves stay in `value`
+  // Rows hold order and not-yet-chosen rows, which the filter list can't; filters themselves stay in `value`
   const [rows, setRows] = useState<FilterRow[]>(() =>
-    Object.keys(value).map((id) => newRow(id)),
+    [...new Set(value.map((f) => f.id))]
+      .filter((id) => columnFilters.some((c) => c.id === id))
+      .map((id) => newRow(id)),
   );
 
-  const without = (columnId: string | undefined): FilterValues => {
-    if (columnId === undefined) return value;
-    const { [columnId]: _removed, ...rest } = value;
-    return rest;
-  };
+  const without = (columnId: string | undefined): Filter[] =>
+    value.filter((f) => f.id !== columnId);
+
+  /** The column's filters without their id, for its component. */
+  const filtersOf = (columnId: string): BaseFilter[] =>
+    value
+      .filter((f) => f.id === columnId)
+      .map(({ operator, value }) => ({ operator, value }));
 
   const chooseColumn = (row: FilterRow, columnId: string) => {
     setRows((current) =>
@@ -68,10 +73,12 @@ const SearchFilters = <R extends TableData>({
     onChange(without(row.columnId));
   };
 
-  const setRowValue = (columnId: string, next: unknown) => {
-    onChange(
-      next === undefined ? without(columnId) : { ...value, [columnId]: next },
-    );
+  /** Replaces exactly this column's filters and leaves the rest of the list alone. */
+  const setColumnFilters = (columnId: string, next: BaseFilter[]) => {
+    onChange([
+      ...without(columnId),
+      ...next.map((f) => ({ ...f, id: columnId })),
+    ]);
   };
 
   const rowSx = {
@@ -130,11 +137,11 @@ const SearchFilters = <R extends TableData>({
             </FormControl>
             <Box sx={{ flex: 1, minWidth: 0 }}>
               {column && (
-                <column.filter.FilterComponent
+                <column.FilterComponent
                   id={inputId}
                   label={column.name}
-                  value={value[column.id]}
-                  onChange={(next) => setRowValue(column.id, next)}
+                  filters={filtersOf(column.id)}
+                  onChange={(next) => setColumnFilters(column.id, next)}
                 />
               )}
             </Box>
