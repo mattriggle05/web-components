@@ -39,7 +39,6 @@ export { default as ColorBar } from "./ColorBar";
 export { default as ConfirmButton } from "./ConfirmButton";
 export {
   default as SearchFilters,
-  DEFAULT_FILTER_ROW_HEIGHT,
   OptionsFilter,
   BooleanFilter,
   RangeFilter,

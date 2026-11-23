@@ -5,7 +5,6 @@ import {
   IconButton,
   MenuItem,
   Select,
-  SxProps,
   Theme,
   Typography,
 } from "@mui/material";
@@ -13,16 +12,12 @@ import { Add, Close } from "@mui/icons-material";
 import { TableData } from "../Table/types";
 import { BaseFilter, Filter, FilterColumn } from "./types";
 
-export const DEFAULT_FILTER_ROW_HEIGHT = 56;
-
 export interface SearchFiltersProps<R extends TableData> {
   /** Columns that can be chosen in a row's dropdown. */
   columnFilters: FilterColumn<R>[];
   /** Every filter for the table. Filters for columns without a row are kept as they are. */
   value: readonly Filter[];
   onChange: (next: Filter[]) => void;
-  rowHeight?: number;
-  sx?: SxProps<Theme>;
 }
 
 interface FilterRow {
@@ -34,8 +29,6 @@ const SearchFilters = <R extends TableData>({
   columnFilters,
   value,
   onChange,
-  rowHeight = DEFAULT_FILTER_ROW_HEIGHT,
-  sx,
 }: SearchFiltersProps<R>) => {
   const baseId = useId();
   const nextKey = useRef(0);
@@ -85,7 +78,8 @@ const SearchFilters = <R extends TableData>({
     display: "flex",
     alignItems: "center",
     gap: 1.5,
-    height: rowHeight,
+    // A small field is 5 spacing units tall; the rest leaves room above it for a raised label
+    height: (theme: Theme) => theme.spacing(7.5),
     px: 1.5,
     borderBottom: 1,
     borderColor: "divider",
@@ -93,12 +87,8 @@ const SearchFilters = <R extends TableData>({
   };
 
   return (
-    <Box
-      sx={[
-        { minWidth: 560, border: 1, borderColor: "divider", borderRadius: 1 },
-        ...(Array.isArray(sx) ? sx : [sx]),
-      ]}
-    >
+    // Unframed: it sits inside whatever opens it, such as a popover
+    <Box sx={{ minWidth: 560, typography: "body1" }}>
       {rows.map((row) => {
         const column = columnFilters.find((c) => c.id === row.columnId);
         const inputId = `${baseId}-${row.key}`;
