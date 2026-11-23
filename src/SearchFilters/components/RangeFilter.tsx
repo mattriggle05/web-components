@@ -24,7 +24,9 @@ export const RangeFilter = ({
   const lo = ge !== undefined && Number.isFinite(Number(ge)) ? Number(ge) : min;
   const hi = le !== undefined && Number.isFinite(Number(le)) ? Number(le) : max;
 
-  const report = ([nextLo, nextHi]: number[]) => {
+  const report = (range: number | number[]) => {
+    if (!Array.isArray(range)) return;
+    const [nextLo, nextHi] = range;
     const next: BaseFilter[] = [];
     if (nextLo !== min) next.push({ operator: "ge", value: String(nextLo) });
     if (nextHi !== max) next.push({ operator: "le", value: String(nextHi) });
@@ -43,7 +45,7 @@ export const RangeFilter = ({
         step={step}
         size="small"
         valueLabelDisplay="auto"
-        onChange={(_event, next) => report(next as number[])}
+        onChange={(_event, next) => report(next)}
       />
       <Typography
         variant="body2"
