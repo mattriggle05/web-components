@@ -13,9 +13,8 @@ import { TableData } from "../Table/types";
 import { BaseFilter, Filter, FilterColumn } from "./types";
 
 export interface SearchFiltersProps<R extends TableData> {
-  /** Columns that can be chosen in a row's dropdown. */
   columnFilters: FilterColumn<R>[];
-  /** Every filter for the table. Filters for columns without a row are kept as they are. */
+  /** Filters for columns without a row are kept as they are. */
   value: readonly Filter[];
   onChange: (next: Filter[]) => void;
 }
@@ -24,6 +23,18 @@ interface FilterRow {
   key: number;
   columnId?: string;
 }
+
+const rowSx = {
+  display: "flex",
+  alignItems: "center",
+  gap: 1.5,
+  // A small field is 5 spacing units; the rest is room for its raised label
+  height: (theme: Theme) => theme.spacing(7.5),
+  px: 1.5,
+  borderBottom: 1,
+  borderColor: "divider",
+  "&:last-child": { borderBottom: 0 },
+};
 
 const SearchFilters = <R extends TableData>({
   columnFilters,
@@ -37,7 +48,7 @@ const SearchFilters = <R extends TableData>({
     columnId,
   });
 
-  // Rows hold order and not-yet-chosen rows, which the filter list can't; filters themselves stay in `value`
+  // Rows hold order and unchosen rows; the filters themselves stay in `value`
   const [rows, setRows] = useState<FilterRow[]>(() =>
     [...new Set(value.map((f) => f.id))]
       .filter((id) => columnFilters.some((c) => c.id === id))
@@ -47,19 +58,12 @@ const SearchFilters = <R extends TableData>({
   const without = (columnId: string): Filter[] =>
     value.filter((f) => f.id !== columnId);
 
-  /** The column's filters without their id, for its component. */
-  const filtersOf = (columnId: string): BaseFilter[] =>
-    value
-      .filter((f) => f.id === columnId)
-      .map(({ operator, value }) => ({ operator, value }));
-
   const chooseColumn = (row: FilterRow, columnId: string) => {
     setRows((current) =>
       current.map((r) => (r.key === row.key ? { ...r, columnId } : r)),
     );
-    // The old column's value doesn't apply to the new one
     if (row.columnId !== undefined && row.columnId !== columnId)
-      if (row.columnId !== undefined) onChange(without(row.columnId));
+      onChange(without(row.columnId));
   };
 
   const removeRow = (row: FilterRow) => {
@@ -67,7 +71,6 @@ const SearchFilters = <R extends TableData>({
     if (row.columnId !== undefined) onChange(without(row.columnId));
   };
 
-  /** Replaces exactly this column's filters and leaves the rest of the list alone. */
   const setColumnFilters = (columnId: string, next: BaseFilter[]) => {
     onChange([
       ...without(columnId),
@@ -75,24 +78,10 @@ const SearchFilters = <R extends TableData>({
     ]);
   };
 
-  const rowSx = {
-    display: "flex",
-    alignItems: "center",
-    gap: 1.5,
-    // A small field is 5 spacing units tall; the rest leaves room above it for a raised label
-    height: (theme: Theme) => theme.spacing(7.5),
-    px: 1.5,
-    borderBottom: 1,
-    borderColor: "divider",
-    "&:last-child": { borderBottom: 0 },
-  };
-
   return (
-    // Unframed: it sits inside whatever opens it, such as a popover
     <Box sx={{ minWidth: 560, typography: "body1" }}>
       {rows.map((row) => {
         const column = columnFilters.find((c) => c.id === row.columnId);
-        const inputId = `${baseId}-${row.key}`;
         return (
           <Box key={row.key} sx={rowSx}>
             <FormControl size="small" sx={{ width: 200, flexShrink: 0 }}>
@@ -115,7 +104,6 @@ const SearchFilters = <R extends TableData>({
                   <MenuItem
                     key={c.id}
                     value={c.id}
-                    // A column can only be filtered by one row
                     disabled={
                       c.id !== row.columnId &&
                       rows.some((r) => r.columnId === c.id)
@@ -129,9 +117,9 @@ const SearchFilters = <R extends TableData>({
             <Box sx={{ flex: 1, minWidth: 0 }}>
               {column && (
                 <column.FilterComponent
-                  id={inputId}
+                  id={`${baseId}-${row.key}`}
                   label={column.name}
-                  filters={filtersOf(column.id)}
+                  filters={value.filter((f) => f.id === column.id)}
                   onChange={(next) => setColumnFilters(column.id, next)}
                 />
               )}
@@ -146,7 +134,6 @@ const SearchFilters = <R extends TableData>({
           </Box>
         );
       })}
-      {/* Every column already has a row, so there is nothing left to add */}
       {rows.length < columnFilters.length && (
         <Box sx={rowSx}>
           <IconButton

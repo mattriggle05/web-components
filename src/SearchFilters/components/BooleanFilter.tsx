@@ -7,7 +7,6 @@ export interface BooleanFilterComponentProps extends FilterComponentProps {
   falseLabel: string;
 }
 
-/** Yes, no or All as radio buttons, as an `is` filter. */
 export const BooleanFilter = ({
   id,
   label,
@@ -17,7 +16,6 @@ export const BooleanFilter = ({
   falseLabel,
 }: BooleanFilterComponentProps) => {
   const is = filters.find((f) => f.operator === "is")?.value;
-  // Anything but "true" or "false" reads as All
   const value = is === "true" || is === "false" ? is : "";
   return (
     <RadioGroup

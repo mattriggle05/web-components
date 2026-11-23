@@ -8,7 +8,7 @@ export interface RangeFilterComponentProps extends FilterComponentProps {
   step?: number;
 }
 
-/** A numeric range on a slider, as `ge` and `le` filters. An end left at its limit has no filter. */
+/** An end left at its limit has no filter. */
 export const RangeFilter = ({
   id,
   label,
@@ -16,11 +16,10 @@ export const RangeFilter = ({
   onChange,
   min,
   max,
-  step = 1,
+  step,
 }: RangeFilterComponentProps) => {
   const ge = filters.find((f) => f.operator === "ge")?.value;
   const le = filters.find((f) => f.operator === "le")?.value;
-  // An end that isn't a number reads as its limit
   const lo = ge !== undefined && Number.isFinite(Number(ge)) ? Number(ge) : min;
   const hi = le !== undefined && Number.isFinite(Number(le)) ? Number(le) : max;
 

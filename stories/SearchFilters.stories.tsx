@@ -24,7 +24,6 @@ type Application = {
   gid: number;
 };
 
-// Built once at module scope, the way a page defines its columns
 const columnFilters: FilterColumn<Application>[] = [
   {
     id: "status",
@@ -68,7 +67,6 @@ const columnFilters: FilterColumn<Application>[] = [
   },
 ];
 
-/** SearchFilters is controlled: this holds the value the way ServerTable would, and shows it. */
 const ControlledSearchFilters = ({
   initialValue = [],
 }: {
@@ -105,9 +103,7 @@ const meta: Meta<typeof ControlledSearchFilters> = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Default: Story = {
-  args: {},
-};
+export const Default: Story = {};
 
 export const WithInitialFilters: Story = {
   args: {

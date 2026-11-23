@@ -6,7 +6,6 @@ export interface OptionsFilterComponentProps extends FilterComponentProps {
   options: FilterOption[];
 }
 
-/** A single choice from a fixed list, as an `eq` filter. */
 export const OptionsFilter = ({
   id,
   label,
@@ -17,7 +16,7 @@ export const OptionsFilter = ({
   const value = filters.find((f) => f.operator === "eq")?.value ?? "";
   return (
     <FormControl size="small" fullWidth>
-      {/* "All" is an empty value, so the label stays raised above it */}
+      {/* Keeps the label raised over the empty "All" value */}
       <InputLabel id={id} shrink>
         {label}
       </InputLabel>
@@ -44,9 +43,7 @@ export const OptionsFilter = ({
   );
 };
 
-// Each call creates a new component, and React remounts a filter whose component changes.
-// Call factories where columns are defined (module scope or a memo), not in a render.
-
+// A new component per call: call factories at module scope or in a memo, not in a render
 export function optionsFilter(options: FilterOption[]): FilterComponent {
   const Component = (props: FilterComponentProps) => (
     <OptionsFilter {...props} options={options} />
